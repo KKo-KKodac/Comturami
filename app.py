@@ -50,6 +50,8 @@ if 'target_idx' not in st.session_state:
 for i in range(6):
     if f"nm_{i}" not in st.session_state: 
         st.session_state[f"nm_{i}"] = ""
+    if f"qty_{i}" not in st.session_state: 
+        st.session_state[f"qty_{i}"] = 1
     if f"pr_{i}" not in st.session_state: 
         st.session_state[f"pr_{i}"] = 0
 
@@ -57,11 +59,14 @@ def add_item_callback(name, price):
     idx = st.session_state['target_idx']
     st.session_state[f"nm_{idx}"] = name
     st.session_state[f"pr_{idx}"] = price
+    st.session_state[f"qty_{idx}"] = 1
     st.session_state['target_idx'] = (idx + 1) % 6
 
 def reset_callback():
     for i in range(6):
-        st.session_state[f"nm_{i}"], st.session_state[f"pr_{i}"] = "", 0
+        st.session_state[f"nm_{i}"] = ""
+        st.session_state[f"qty_{i}"] = 1
+        st.session_state[f"pr_{i}"] = 0
     st.session_state['target_idx'] = 0
 
 @st.cache_data(ttl=3600)
@@ -153,12 +158,17 @@ st.radio("항목 선택:", range(6), format_func=lambda x: labels[x], key="targe
 total_sum = 0
 for i in range(6):
     st.write(f"**{labels[i]}**")
-    c1, c2 = st.columns([3, 1])
+    c1, c2, c3 = st.columns([3, 1, 1.5])
     with c1:
         st.text_input(f"모델명_{i}", key=f"nm_{i}", label_visibility="collapsed")
     with c2:
-        st.number_input(f"금액_{i}", step=1000, key=f"pr_{i}", label_visibility="collapsed")
-    total_sum += st.session_state[f"pr_{i}"]
+        st.number_input(f"수량_{i}", min_value=1, value=st.session_state[f"qty_{i}"], step=1, key=f"qty_{i}", label_visibility="collapsed")
+    with c3:
+        st.number_input(f"단가_{i}", step=1000, key=f"pr_{i}", label_visibility="collapsed")
+    
+    # 단가 x 수량 합산
+    item_total = st.session_state[f"pr_{i}"] * st.session_state[f"qty_{i}"]
+    total_sum += item_total
 
 st.markdown(f"### 💰 최종 합계: :red[{total_sum:,}원]")
 
@@ -168,7 +178,9 @@ with b_col1:
 with b_col2:
     res_df = pd.DataFrame({
         "항목": labels, 
-        "모델": [st.session_state[f"nm_{k}"] for k in range(6)], 
-        "금액": [st.session_state[f"pr_{k}"] for k in range(6)]
+        "모델": [st.session_state[f"nm_{k}"] for k in range(6)],
+        "수량": [st.session_state[f"qty_{k}"] for k in range(6)],
+        "단가": [st.session_state[f"pr_{k}"] for k in range(6)],
+        "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
     })
     st.download_button("💾 CSV 저장", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="purchase_list.csv", use_container_width=True)
