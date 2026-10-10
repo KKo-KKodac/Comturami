@@ -6,7 +6,7 @@ import re
 import os
 from datetime import datetime
 
-st.set_page_config(page_title="컴퓨터 매입계산기", layout="wide")
+st.set_page_config(page_title="꼬꼬닥'S 컴퓨터 매입계산기", layout="wide")
 
 st.markdown("""
     <style>
@@ -155,20 +155,38 @@ st.divider()
 st.subheader("🛒 매입 계산 리스트")
 st.radio("항목 선택:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
 
+# 헤더 라벨 표시 (모델명 / 단가 / 수량 / 합계)
+st.markdown("""
+    <div style="display: flex; background-color: #2c3e50; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px;">
+        <div style="flex: 3;">모델명</div>
+        <div style="flex: 1.2;">단가(원)</div>
+        <div style="flex: 0.9;">수량</div>
+        <div style="flex: 1.4;">합계금액(원)</div>
+    </div>
+""", unsafe_allow_html=True)
+
 total_sum = 0
 for i in range(6):
     st.write(f"**{labels[i]}**")
-    c1, c2, c3 = st.columns([3, 1, 1.5])
+    c1, c2, c3, c4 = st.columns([3, 1.2, 0.9, 1.4])
+    
     with c1:
         st.text_input(f"모델명_{i}", key=f"nm_{i}", label_visibility="collapsed")
     with c2:
-        st.number_input(f"수량_{i}", min_value=1, value=st.session_state[f"qty_{i}"], step=1, key=f"qty_{i}", label_visibility="collapsed")
-    with c3:
         st.number_input(f"단가_{i}", step=1000, key=f"pr_{i}", label_visibility="collapsed")
+    with c3:
+        st.number_input(f"수량_{i}", min_value=1, value=st.session_state[f"qty_{i}"], step=1, key=f"qty_{i}", label_visibility="collapsed")
     
-    # 단가 x 수량 합산
+    # 단가 x 수량 항목별 소계 계산
     item_total = st.session_state[f"pr_{i}"] * st.session_state[f"qty_{i}"]
     total_sum += item_total
+    
+    with c4:
+        st.markdown(
+            f'<div class="cell-center" style="font-size: 16px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
+            f'{item_total:,}원</div>',
+            unsafe_allow_html=True
+        )
 
 st.markdown(f"### 💰 최종 합계: :red[{total_sum:,}원]")
 
