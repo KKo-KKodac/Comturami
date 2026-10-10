@@ -108,7 +108,7 @@ def load_price_data():
         return pd.DataFrame(all_rows), "실시간 임시 로드"
     return pd.DataFrame(columns=["분류", "상품명", "매입가"]), "데이터 없음"
 
-st.title("🐔꼬꼬닥'S 컴퓨터 매입계산기🖥️")
+st.title("💾컴퓨터 매입계산기🖥️")
 
 df, last_updated = load_price_data()
 
