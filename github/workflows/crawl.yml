@@ -1,0 +1,39 @@
+name: Daily Price Crawl (09:00 KST)
+
+on:
+  schedule:
+    # UTC 기준 00:00 = 한국 시간(KST) 매일 오전 09:00 자동 실행
+    - cron: '0 0 * * *'
+  # GitHub 웹페이지에서 'Run workflow' 버튼으로 언제든 즉시 실행 가능
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  run-crawler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: Python 환경 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 패키지 설치
+        run: |
+          pip install requests beautifulsoup4 pandas
+
+      - name: 크롤러 실행
+        run: |
+          python crawler.py
+
+      - name: 수집된 price_data.csv 저장소에 자동 커밋 & 푸시
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add price_data.csv
+          git commit -m "Auto: 시세 DB 갱신 ($(date +'%Y-%m-%d %H:%M:%S'))" || exit 0
+          git push
