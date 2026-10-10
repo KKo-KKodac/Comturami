@@ -6,7 +6,7 @@ import re
 import os
 from datetime import datetime
 
-st.set_page_config(page_title="꼬꼬닥'S 컴퓨터 매입계산기", layout="wide")
+st.set_page_config(page_title="컴퓨터 매입계산기", layout="wide")
 
 st.markdown("""
     <style>
