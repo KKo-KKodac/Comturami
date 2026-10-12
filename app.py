@@ -6,7 +6,7 @@ import re
 import os
 from datetime import datetime
 
-st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="🐔")
+st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
 
 st.markdown("""
     <style>
@@ -188,7 +188,7 @@ st.markdown(f"""
     <div class="consult-banner">
         <div>
             <div style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">💬 대량 매입 / 단품 시세 문의 & 접수</div>
-            <div style="font-size: 13px; opacity: 0.85;">견적서 캡처 후 보내주시면 당일 검수 후 즉시 입금해 드립니다!</div>
+            <div style="font-size: 13px; opacity: 0.85;">당일 검수 후 즉시 입금해 드립니다!</div>
         </div>
         <div>
             <a href="{KAKAO_CHAT_URL}" target="_blank" class="consult-btn">카톡 상담하기 ➜</a>
