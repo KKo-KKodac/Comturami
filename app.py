@@ -106,14 +106,42 @@ st.markdown("""
         margin-top: 10px;
         text-align: right;
     }
+
+    /* 쿠팡 블러 처리 스타일 */
+    .coupang-blur-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+    }
+    .coupang-blur-content {
+        filter: blur(5px);
+        pointer-events: none;
+        user-select: none;
+        opacity: 0.55;
+    }
+    .coupang-blur-badge {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(30, 41, 59, 0.88);
+        color: #ffffff;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 14px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        letter-spacing: -0.3px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # ----------------- 링크 설정 (원하시는 실제 주소로 변경하세요) -----------------
 KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"        # 본인의 카카오톡 채널 또는 오픈채팅방 링크
-#COUPANG_LINK_1 = "https://link.coupang.com/"       # 쿠팡 파트너스 링크 1 (예: 택배 안전 뽁뽁이/에어캡)
-#COUPANG_LINK_2 = "https://link.coupang.com/"       # 쿠팡 파트너스 링크 2 (예: 고성능 써멀구리스)
-#COUPANG_LINK_3 = "https://link.coupang.com/"       # 쿠팡 파트너스 링크 3 (예: 정전기 방지 포장재)
+COUPANG_LINK_1 = "#"       # 쿠팡 파트너스 링크 1 (예: 택배 안전 뽁뽁이/에어캡)
+COUPANG_LINK_2 = "#"       # 쿠팡 파트너스 링크 2 (예: 고성능 써멀구리스)
+COUPANG_LINK_3 = "#"       # 쿠팡 파트너스 링크 3 (예: 정전기 방지 포장재)
 # -------------------------------------------------------------------------
 
 labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
@@ -188,7 +216,7 @@ st.markdown(f"""
     <div class="consult-banner">
         <div>
             <div style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">💬 대량 매입 / 단품 시세 문의 & 접수</div>
-            <div style="font-size: 13px; opacity: 0.85;">당일 검수 후 즉시 입금해 드립니다!</div>
+            <div style="font-size: 13px; opacity: 0.85;">당일 검수! 즉시 입금해 드립니다!</div>
         </div>
         <div>
             <a href="{KAKAO_CHAT_URL}" target="_blank" class="consult-btn">카톡 상담하기 ➜</a>
@@ -288,31 +316,38 @@ with b_col2:
     })
     st.download_button("💾 CSV 저장", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="purchase_list.csv", use_container_width=True)
 
-# 2. 쿠팡 파트너스 추천 & 택배 포장재 배너 (하단)
+# 2. 쿠팡 파트너스 추천 & 택배 포장재 배너 (하단 - 블러 처리 상태)
 st.markdown(f"""
-    <div class="coupang-card">
-        <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">
-            📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
+    <div class="coupang-blur-container">
+        <div class="coupang-blur-badge">
+            🔒 추천 제휴 상품 서비스 준비 중입니다
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">📦 에어캡 / 뽁뽁이 롤</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">그래픽카드·본체 파손 방지 완충재</div>
-                <a href="{COUPANG_LINK_1}" target="_blank" class="coupang-link">쿠팡 최저가 보기</a>
+        <div class="coupang-blur-content">
+            <div class="coupang-card">
+                <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">
+                    📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div class="coupang-item">
+                        <div style="font-size: 14px; font-weight: bold;">📦 에어캡 / 뽁뽁이 롤</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">그래픽카드·본체 파손 방지 완충재</div>
+                        <span class="coupang-link">쿠팡 최저가 보기</span>
+                    </div>
+                    <div class="coupang-item">
+                        <div style="font-size: 14px; font-weight: bold;">🧪 가성비 써멀구리스</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">CPU/쿨러 재조립 필수용품</div>
+                        <span class="coupang-link">쿠팡 최저가 보기</span>
+                    </div>
+                    <div class="coupang-item">
+                        <div style="font-size: 14px; font-weight: bold;">⚡ 정전기 방지 봉투 (ESD)</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">RAM / SSD / 그래픽카드 안전 보관</div>
+                        <span class="coupang-link">쿠팡 최저가 보기</span>
+                    </div>
+                </div>
+                <div class="ad-notice">
+                    ※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+                </div>
             </div>
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">🧪 가성비 써멀구리스</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">CPU/쿨러 재조립 필수용품</div>
-                <a href="{COUPANG_LINK_2}" target="_blank" class="coupang-link">쿠팡 최저가 보기</a>
-            </div>
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">⚡ 정전기 방지 봉투 (ESD)</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">RAM / SSD / 그래픽카드 안전 보관</div>
-                <a href="{COUPANG_LINK_3}" target="_blank" class="coupang-link">쿠팡 최저가 보기</a>
-            </div>
-        </div>
-        <div class="ad-notice">
-            ※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
         </div>
     </div>
 """, unsafe_allow_html=True)
