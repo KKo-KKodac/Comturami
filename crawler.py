@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 # 1. 구글 스프레드시트 연동 설정 (기존에 쓰시던 시트 ID를 따옴표 안에 넣어주세요!)
-SHEET_ID = ""18Jbbs1qvp9rYew6gaJglcqMzpCUGR0iTlep8NTjyltM""
+SHEET_ID = "18Jbbs1qvp9rYew6gaJglcqMzpCUGR0iTlep8NTjyltM"
 
 # 2. 기존 수집 URL 기본 목록 (56개)
 BASE_URLS = [
