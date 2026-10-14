@@ -1,12 +1,13 @@
 import io
 import re
 from datetime import datetime
+from urllib.parse import quote
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 
-# 1. 구글 스프레드시트 연동 설정
-SHEET_ID = "18Jbbs1qvp9rYew6gaJglcqMzpCUGR0iTlep8NTjyltM"
+# 1. 구글 스프레드시트 연동 설정 (기존에 쓰시던 시트 ID를 따옴표 안에 넣어주세요!)
+SHEET_ID = "https://docs.google.com/spreadsheets/d/18Jbbs1qvp9rYew6gaJglcqMzpCUGR0iTlep8NTjyltM/edit?usp=sharing"
 
 # 2. 기존 수집 URL 기본 목록 (56개)
 BASE_URLS = [
@@ -69,13 +70,17 @@ BASE_URLS = [
 ]
 
 def fetch_sheet_urls(sheet_id):
-    """구글 시트 D열에서 URL 목록을 가져오는 함수"""
+    """구글 시트 '월드_수집 URL' 탭의 D열에서 URL 목록을 가져오는 함수"""
     sheet_urls = []
-    # 1. 탭 이름(월드 수집 URL) 또는 기본 시트 CSV 내보내기 시도
+    
+    # 실제 시트 탭 이름인 '월드_수집 URL'(언더바 포함)을 우선 탐색하도록 설정
+    sheet_names = ["월드_수집 URL", "월드 수집 URL"]
     export_urls = [
-        f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet=%EC%9B%94%EB%93%9C%20%EC%88%98%EC%A7%91%20URL",
-        f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+        f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={quote(name)}"
+        for name in sheet_names
     ]
+    # 탭 이름 조회가 모두 실패할 경우 기본 시트 조회
+    export_urls.append(f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv")
     
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
@@ -84,15 +89,26 @@ def fetch_sheet_urls(sheet_id):
     for export_url in export_urls:
         try:
             res = requests.get(export_url, headers=headers, timeout=10)
+            res.encoding = "utf-8"
+            
+            # 정상적으로 CSV 데이터를 받아왔는지 확인 (권한 문제로 로그인 HTML 페이지가 뜨는 경우 제외)
             if res.status_code == 200 and "text/html" not in res.headers.get("Content-Type", ""):
-                df_sheet = pd.read_csv(io.StringIO(res.text))
-                # 모든 열을 탐색하여 월드메모리 링크 수집
-                for col in df_sheet.columns:
+                # 첫 줄이 비어있을 수 있으므로 header=None으로 모든 행을 빠짐없이 읽음
+                df_sheet = pd.read_csv(io.StringIO(res.text), header=None)
+                
+                current_urls = []
+                # D열(인덱스 3)이 존재하면 D열을 우선 탐색, 없으면 전체 열 탐색
+                target_cols = [3] if 3 in df_sheet.columns else df_sheet.columns
+                
+                for col in target_cols:
                     for item in df_sheet[col].dropna().astype(str):
                         url = item.strip()
                         if url.startswith("http") and "worldmemory.co.kr" in url:
-                            sheet_urls.append(url)
-                if sheet_urls:
+                            current_urls.append(url)
+                
+                # 첫 번째 시트('매입품목 및 가격')와 헷갈리지 않도록 최소 10개 이상의 URL이 발견되었을 때만 채택
+                if len(set(current_urls)) >= 10:
+                    sheet_urls = current_urls
                     break
         except Exception as e:
             continue
@@ -133,13 +149,15 @@ def crawl_and_save():
                 n = row.find("td", class_="price_table_prduct_nm")
                 p = row.find("td", class_="price_table_prduct_pc")
                 if c and n and p:
-                    price_num = int(re.sub(r'[^0-9]', '', p.text))
-                    if price_num > 0:
-                        all_rows.append({
-                            "분류": c.text.strip(),
-                            "상품명": n.text.strip(),
-                            "매입가": price_num
-                        })
+                    price_str = re.sub(r'[^0-9]', '', p.text)
+                    if price_str:
+                        price_num = int(price_str)
+                        if price_num > 0:
+                            all_rows.append({
+                                "분류": c.text.strip(),
+                                "상품명": n.text.strip(),
+                                "매입가": price_num
+                            })
             print(f"[{idx}/{len(target_urls)}] 수집 완료")
         except Exception as e:
             print(f"[{idx}/{len(target_urls)}] 수집 에러 ({url}): {e}")
