@@ -8,60 +8,62 @@ from datetime import datetime
 
 st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
 
+# ----------------- 스타일 정의 -----------------
 st.markdown("""
     <style>
     div[data-baseweb="select"], div[data-baseweb="input"], .stTextInput input, .stSelectbox div[role="button"] {
-        height: 48px !important; min-height: 48px !important;
+        height: 46px !important; min-height: 46px !important;
         display: flex !important; align-items: center !important;
     }
     div[data-baseweb="select"] > div { padding: 0 !important; display: flex !important; align-items: center !important; }
     
+    /* 컴뚜라미 브랜드 컬러 적용 */
     .table-header {
-        display: flex; background-color: #4A90E2; color: white; 
-        padding: 12px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 8px;
+        display: flex; background-color: #1e3a29; color: white; 
+        padding: 10px 0; font-weight: bold; border-radius: 6px; text-align: center; margin-bottom: 8px; font-size: 14px;
     }
-    .header-item { flex: 1; border-right: 1px solid rgba(255,255,255,0.3); }
+    .header-item { flex: 1; border-right: 1px solid rgba(255,255,255,0.2); }
     .header-item:last-child { border-right: none; }
 
     .cell-center { 
         text-align: center; display: flex; align-items: center; justify-content: center; 
-        height: 48px; border-right: 1px solid #f0f2f6; 
+        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
     }
     .cell-left { 
         display: flex; align-items: center; padding-left: 10px; 
-        height: 48px; border-right: 1px solid #f0f2f6; 
+        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
     }
 
     div.stButton > button[key^="add_"] {
-        width: 38px !important; min-width: 38px !important; height: 38px !important; 
+        width: 36px !important; min-width: 36px !important; height: 36px !important; 
         border-radius: 50% !important; margin: 0 auto !important; display: flex !important;
         align-items: center !important; justify-content: center !important;
     }
     
-    .price-text { color: red; font-weight: bold; font-size: 16px; margin: 0; }
+    .price-text { color: #d93838; font-weight: 700; font-size: 15px; margin: 0; }
     .truncate-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 100%; }
 
     /* 상담 배너 스타일 */
     .consult-banner {
         background: linear-gradient(135deg, #FFE812 0%, #FEE500 100%);
         color: #3C1E1E;
-        padding: 16px 20px;
-        border-radius: 12px;
+        padding: 14px 20px;
+        border-radius: 10px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin: 15px 0;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        margin: 12px 0 18px 0;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.06);
     }
     .consult-btn {
         background-color: #3C1E1E;
         color: #FFE812 !important;
         font-weight: 700;
-        padding: 10px 22px;
-        border-radius: 24px;
+        padding: 8px 18px;
+        border-radius: 20px;
         text-decoration: none;
         display: inline-block;
-        font-size: 15px;
+        font-size: 14px;
     }
     .consult-btn:hover {
         background-color: #241111;
@@ -71,10 +73,9 @@ st.markdown("""
     .coupang-card {
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 16px;
-        margin-top: 25px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-top: 20px;
         color: #333333;
     }
     .coupang-item {
@@ -83,27 +84,22 @@ st.markdown("""
         border-radius: 8px;
         padding: 12px;
         text-align: center;
-        transition: 0.2s ease-in-out;
-    }
-    .coupang-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
     .coupang-link {
         display: inline-block;
         background-color: #0073E9;
         color: #ffffff !important;
-        padding: 6px 14px;
+        padding: 5px 12px;
         border-radius: 6px;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         margin-top: 8px;
     }
     .ad-notice {
         font-size: 11px;
         color: #888888;
-        margin-top: 10px;
+        margin-top: 8px;
         text-align: right;
     }
 
@@ -111,10 +107,10 @@ st.markdown("""
     .coupang-blur-container {
         position: relative;
         overflow: hidden;
-        border-radius: 12px;
+        border-radius: 10px;
     }
     .coupang-blur-content {
-        filter: blur(5px);
+        filter: blur(4px);
         pointer-events: none;
         user-select: none;
         opacity: 0.55;
@@ -124,27 +120,22 @@ st.markdown("""
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background-color: rgba(30, 41, 59, 0.88);
+        background-color: rgba(30, 41, 59, 0.9);
         color: #ffffff;
-        padding: 12px 24px;
-        border-radius: 30px;
+        padding: 10px 20px;
+        border-radius: 25px;
         font-weight: 700;
-        font-size: 14px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        font-size: 13px;
         z-index: 10;
-        letter-spacing: -0.3px;
     }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# ----------------- 링크 설정 (원하시는 실제 주소로 변경하세요) -----------------
-KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"        # 본인의 카카오톡 채널 또는 오픈채팅방 링크
-COUPANG_LINK_1 = "#"       # 쿠팡 파트너스 링크 1 (예: 택배 안전 뽁뽁이/에어캡)
-COUPANG_LINK_2 = "#"       # 쿠팡 파트너스 링크 2 (예: 고성능 써멀구리스)
-COUPANG_LINK_3 = "#"       # 쿠팡 파트너스 링크 3 (예: 정전기 방지 포장재)
-# -------------------------------------------------------------------------
-
+# ----------------- 링크 설정 -----------------
+KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
 labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
+
+# ----------------- Session State 초기화 -----------------
 if 'target_idx' not in st.session_state: 
     st.session_state['target_idx'] = 0
 
@@ -161,6 +152,7 @@ def add_item_callback(name, price):
     st.session_state[f"nm_{idx}"] = name
     st.session_state[f"pr_{idx}"] = price
     st.session_state[f"qty_{idx}"] = 1
+    # 담은 후 다음 품목으로 자동 포커스 이동
     st.session_state['target_idx'] = (idx + 1) % 6
 
 def reset_callback():
@@ -170,6 +162,7 @@ def reset_callback():
         st.session_state[f"pr_{i}"] = 0
     st.session_state['target_idx'] = 0
 
+# ----------------- 데이터 로딩 함수 -----------------
 @st.cache_data(ttl=3600)
 def load_price_data():
     file_path = "price_data.csv"
@@ -182,7 +175,7 @@ def load_price_data():
         except Exception:
             pass
 
-    # CSV 파일이 없을 경우 기본 백업 수집
+    # 백업 크롤링 (월드메모리 기준)
     URLS = [
         "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=10&ctgry_no2=966&ctgry_no3=4220",
         "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=10&ctgry_no2=966&ctgry_no3=967",
@@ -209,14 +202,15 @@ def load_price_data():
         return pd.DataFrame(all_rows), "실시간 임시 로드"
     return pd.DataFrame(columns=["분류", "상품명", "매입가"]), "데이터 없음"
 
-st.title("컴뚜라미 컴퓨터 매입계산기🖥️")
+# ----------------- UI 렌더링 -----------------
+st.title("컴뚜라미 컴퓨터 매입계산기 🖥️")
 
-# 1. 카카오톡 실시간 상담 배너
+# 1. 카카오톡 상담 배너
 st.markdown(f"""
     <div class="consult-banner">
         <div>
-            <div style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">💬 대량 매입 / 단품 시세 문의 & 접수</div>
-            <div style="font-size: 13px; opacity: 0.85;">당일 검수! 즉시 입금해 드립니다!</div>
+            <div style="font-size: 17px; font-weight: 800; margin-bottom: 2px;">💬 대량 매입 / 단품 시세 문의 & 접수</div>
+            <div style="font-size: 13px; opacity: 0.85;">당일 검수! 즉시 입금해 드립니다.</div>
         </div>
         <div>
             <a href="{KAKAO_CHAT_URL}" target="_blank" class="consult-btn">카톡 상담하기 ➜</a>
@@ -227,12 +221,11 @@ st.markdown(f"""
 df, last_updated = load_price_data()
 
 if not df.empty:
-    st.success(f"⚡ 시세 데이터 준비 완료 (기준: {last_updated})")
+    st.caption(f"⚡ 시세 데이터 기준: {last_updated}")
 else:
     st.warning("⚠️ 시세 데이터를 불러오는 중입니다. 잠시 후 새로고침해 주세요.")
 
-st.divider()
-
+# 2. 검색 및 시세 리스트
 if not df.empty:
     c_cat, c_search = st.columns([1, 2.5])
     with c_cat:
@@ -253,25 +246,25 @@ if not df.empty:
             <div class="header-item" style="flex:1.5;">금액</div>
             <div class="header-item" style="flex:0.8; border-right:none;">담기</div>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    with st.container(height=380):
+    with st.container(height=360):
         for i, row in f_df.iterrows():
             cols = st.columns([1, 2.5, 1.5, 0.8])
             cols[0].markdown(f'<div class="cell-center">{row["분류"]}</div>', unsafe_allow_html=True)
             cols[1].markdown(f'<div class="cell-left"><span class="truncate-text">{row["상품명"]}</span></div>', unsafe_allow_html=True)
-            cols[2].markdown(f'<div class="cell-center price-text">{int(row["매입가"]):,}</div>', unsafe_allow_html=True)
+            cols[2].markdown(f'<div class="cell-center price-text">{int(row["매입가"]):,}원</div>', unsafe_allow_html=True)
             with cols[3]:
                 st.button("➕", key=f"add_{i}", on_click=add_item_callback, args=(row['상품명'], int(row['매입가'])))
 
 st.divider()
 
+# 3. 매입 계산 리스트
 st.subheader("🛒 매입 계산 리스트")
-st.radio("항목 선택:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
+st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
 
-# 모델명 / 단가 / 수량 / 합계금액 헤더
 st.markdown("""
-    <div style="display: flex; background-color: #2c3e50; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px;">
+    <div style="display: flex; background-color: #1e3a29; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px; font-size: 13px;">
         <div style="flex: 3;">모델명</div>
         <div style="flex: 1.2;">단가(원)</div>
         <div style="flex: 0.9;">수량</div>
@@ -281,7 +274,7 @@ st.markdown("""
 
 total_sum = 0
 for i in range(6):
-    st.write(f"**{labels[i]}**")
+    st.caption(f"**{labels[i]}**")
     c1, c2, c3, c4 = st.columns([3, 1.2, 0.9, 1.4])
     
     with c1:
@@ -289,19 +282,19 @@ for i in range(6):
     with c2:
         st.number_input(f"단가_{i}", step=1000, key=f"pr_{i}", label_visibility="collapsed")
     with c3:
-        st.number_input(f"수량_{i}", min_value=1, value=st.session_state[f"qty_{i}"], step=1, key=f"qty_{i}", label_visibility="collapsed")
+        st.number_input(f"수량_{i}", min_value=1, step=1, key=f"qty_{i}", label_visibility="collapsed")
     
     item_total = st.session_state[f"pr_{i}"] * st.session_state[f"qty_{i}"]
     total_sum += item_total
     
     with c4:
         st.markdown(
-            f'<div class="cell-center" style="font-size: 16px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
+            f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
             f'{item_total:,}원</div>',
             unsafe_allow_html=True
         )
 
-st.markdown(f"### 💰 최종 합계: :red[{total_sum:,}원]")
+st.markdown(f"### 💰 최종 매입 합계: :red[{total_sum:,}원]")
 
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
@@ -314,9 +307,9 @@ with b_col2:
         "단가": [st.session_state[f"pr_{k}"] for k in range(6)],
         "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
     })
-    st.download_button("💾 CSV 저장", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="purchase_list.csv", use_container_width=True)
+    st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
 
-# 2. 쿠팡 파트너스 추천 & 택배 포장재 배너 (하단 - 블러 처리 상태)
+# 4. 하단 쿠팡 배너 (준비 중 블러 영역)
 st.markdown(f"""
     <div class="coupang-blur-container">
         <div class="coupang-blur-badge">
