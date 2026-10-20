@@ -42,7 +42,6 @@ st.markdown("""
     }
     div[data-baseweb="select"] > div { padding: 0 !important; display: flex !important; align-items: center !important; }
     
-    /* 컴뚜라미 브랜드 컬러 적용 */
     .table-header {
         display: flex; background-color: #1e3a29; color: white; 
         padding: 10px 0; font-weight: bold; border-radius: 6px; text-align: center; margin-bottom: 8px; font-size: 14px;
@@ -94,26 +93,21 @@ st.markdown("""
         background-color: #241111;
     }
 
-    /* 쿠팡 파트너스 배너 카드 스타일 */
+    /* 쿠팡 파트너스 배너 카드 스타일 (블러 완전 제거) */
     .coupang-card {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
+        background: #1e2630;
+        border: 1px solid #2d3748;
         border-radius: 10px;
-        padding: 16px;
-        margin-top: 25px;
-        color: #333333;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        padding: 18px;
+        margin-top: 30px;
+        color: #ffffff;
     }
     .coupang-item {
-        background: #f9fafb;
-        border: 1px solid #edf2f7;
+        background: #283340;
+        border: 1px solid #3b4756;
         border-radius: 8px;
-        padding: 12px;
+        padding: 14px;
         text-align: center;
-        transition: transform 0.2s;
-    }
-    .coupang-item:hover {
-        transform: translateY(-2px);
     }
     .coupang-link {
         display: inline-block;
@@ -122,17 +116,17 @@ st.markdown("""
         padding: 6px 14px;
         border-radius: 6px;
         text-decoration: none;
-        font-size: 12px;
-        font-weight: 600;
-        margin-top: 8px;
+        font-size: 13px;
+        font-weight: bold;
+        margin-top: 10px;
     }
     .coupang-link:hover {
         background-color: #005bb5;
     }
     .ad-notice {
         font-size: 11px;
-        color: #888888;
-        margin-top: 10px;
+        color: #a0aec0;
+        margin-top: 12px;
         text-align: right;
     }
     </style>
@@ -261,9 +255,9 @@ if not df.empty:
 
 st.divider()
 
-# 3. 매입 계산 리스트[cite: 4]
-st.subheader("🛒 매입 계산 리스트")[cite: 4]
-st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)[cite: 4]
+# 3. 매입 계산 리스트
+st.subheader("🛒 매입 계산 리스트")
+st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
 
 st.markdown("""
     <div style="display: flex; background-color: #1e3a29; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px; font-size: 13px;">
@@ -272,11 +266,11 @@ st.markdown("""
         <div style="flex: 0.9;">수량</div>
         <div style="flex: 1.4;">합계금액(원)</div>
     </div>
-""", unsafe_allow_html=True)[cite: 4]
+""", unsafe_allow_html=True)
 
 total_sum = 0
 for i in range(6):
-    st.caption(f"**{labels[i]}**")[cite: 4]
+    st.caption(f"**{labels[i]}**")
     c1, c2, c3, c4 = st.columns([3, 1.2, 0.9, 1.4])
     
     with c1:
@@ -294,26 +288,26 @@ for i in range(6):
             f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
             f'{item_total:,}원</div>',
             unsafe_allow_html=True
-        )[cite: 4]
+        )
 
-# --- 최종 매입 합계: 위 표의 마지막 열(c4 위치)에 완벽하게 일치시킴 ---
-tot_col1, tot_col2 = st.columns([5.1, 1.4])
-with tot_col1:
+# --- 최종 매입 합계: 표와 정확히 동일한 컬럼 배율로 맨 오른쪽 열(c4 위치)에 정렬 ---
+tot_c1, tot_c2, tot_c3, tot_c4 = st.columns([3, 1.2, 0.9, 1.4])
+with tot_c3:
     st.markdown(
-        '<div style="text-align: right; font-size: 19px; font-weight: 800; padding-top: 10px; color: #ffffff;">'
-        '💰 최종 매입 합계:</div>',
+        '<div style="text-align: right; font-size: 16px; font-weight: 800; padding-top: 14px; color: #ffffff;">'
+        '💰 최종합계</div>',
         unsafe_allow_html=True
     )
-with tot_col2:
+with tot_c4:
     st.markdown(
-        f'<div style="text-align: center; font-size: 20px; font-weight: 900; color: #ff4b4b; '
-        f'background-color: rgba(255, 75, 75, 0.15); border: 1.5px solid rgba(255, 75, 75, 0.35); '
-        f'border-radius: 6px; padding: 8px 0; margin-top: 4px;">'
+        f'<div style="text-align: center; font-size: 18px; font-weight: 900; color: #ff4b4b; '
+        f'background-color: rgba(255, 75, 75, 0.18); border: 1.5px solid rgba(255, 75, 75, 0.4); '
+        f'border-radius: 6px; padding: 10px 0; margin-top: 4px;">'
         f'{total_sum:,}원</div>',
         unsafe_allow_html=True
     )
 
-st.write("")  # 여백 조절
+st.write("")  # 간격용
 
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
@@ -328,26 +322,26 @@ with b_col2:
     })
     st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
 
-# 4. 하단 쿠팡 파트너스 추천 배너 (블러 해제 및 실링크 연동)
+# 4. 하단 쿠팡 파트너스 배너 (블러 완전히 제거됨)
 st.markdown(f"""
     <div class="coupang-card">
-        <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">
+        <div style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #ffffff;">
             📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
             <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">📦 에어캡 / 뽁뽁이 롤</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">그래픽카드·본체 파손 방지 완충재</div>
+                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">📦 따뜻해~손난로</div>
+                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">후끈해지는 시간</div>
                 <a href="{COUPANG_LINK_1}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
             </div>
             <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">🧪 가성비 써멀구리스</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">CPU/쿨러 재조립 필수용품</div>
+                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">🧪 가성비 써멀구리스</div>
+                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">CPU/쿨러 재조립 필수용품</div>
                 <a href="{COUPANG_LINK_2}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
             </div>
             <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold;">⚡ 정전기 방지 봉투 (ESD)</div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">RAM / SSD / 그래픽카드 안전 보관</div>
+                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">⚡ 정전기 방지 봉투 (ESD)</div>
+                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">RAM / SSD / 그래픽카드 안전 보관</div>
                 <a href="{COUPANG_LINK_3}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
             </div>
         </div>
