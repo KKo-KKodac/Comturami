@@ -1,19 +1,12 @@
 import streamlit as st
 import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-import re
 import os
 from datetime import datetime
 
 st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
 
-# ----------------- 링크 설정 -----------------
+# ----------------- 링크 및 기본 설정 -----------------
 KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
-COUPANG_LINK_1 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 에어캡/포장재 파트너스 링크
-COUPANG_LINK_2 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 써멀구리스 링크
-COUPANG_LINK_3 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 정전기방지봉투 링크
-
 labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
 
 # ----------------- 최상단 메인 이미지 노출 -----------------
@@ -37,34 +30,34 @@ if not banner_shown:
 st.markdown("""
     <style>
     div[data-baseweb="select"], div[data-baseweb="input"], .stTextInput input, .stSelectbox div[role="button"] {
-        height: 46px !important; min-height: 46px !important;
+        height: 44px !important; min-height: 44px !important;
         display: flex !important; align-items: center !important;
     }
     div[data-baseweb="select"] > div { padding: 0 !important; display: flex !important; align-items: center !important; }
     
     .table-header {
         display: flex; background-color: #1e3a29; color: white; 
-        padding: 10px 0; font-weight: bold; border-radius: 6px; text-align: center; margin-bottom: 8px; font-size: 14px;
+        padding: 10px 0; font-weight: bold; border-radius: 6px; text-align: center; margin-bottom: 6px; font-size: 14px;
     }
     .header-item { flex: 1; border-right: 1px solid rgba(255,255,255,0.2); }
     .header-item:last-child { border-right: none; }
 
     .cell-center { 
         text-align: center; display: flex; align-items: center; justify-content: center; 
-        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
+        height: 44px; border-right: 1px solid #2d3748; font-size: 14px;
     }
     .cell-left { 
         display: flex; align-items: center; padding-left: 10px; 
-        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
+        height: 44px; border-right: 1px solid #2d3748; font-size: 14px;
     }
 
     div.stButton > button[key^="add_"] {
-        width: 36px !important; min-width: 36px !important; height: 36px !important; 
+        width: 34px !important; min-width: 34px !important; height: 34px !important; 
         border-radius: 50% !important; margin: 0 auto !important; display: flex !important;
         align-items: center !important; justify-content: center !important;
     }
     
-    .price-text { color: #d93838; font-weight: 700; font-size: 15px; margin: 0; }
+    .price-text { color: #ff5252; font-weight: 700; font-size: 15px; margin: 0; }
     .truncate-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; max-width: 100%; }
 
     /* 상담 배너 스타일 */
@@ -92,43 +85,6 @@ st.markdown("""
     .consult-btn:hover {
         background-color: #241111;
     }
-
-    /* 쿠팡 파트너스 배너 카드 스타일 (블러 완전 제거) */
-    .coupang-card {
-        background: #1e2630;
-        border: 1px solid #2d3748;
-        border-radius: 10px;
-        padding: 18px;
-        margin-top: 30px;
-        color: #ffffff;
-    }
-    .coupang-item {
-        background: #283340;
-        border: 1px solid #3b4756;
-        border-radius: 8px;
-        padding: 14px;
-        text-align: center;
-    }
-    .coupang-link {
-        display: inline-block;
-        background-color: #0073E9;
-        color: #ffffff !important;
-        padding: 6px 14px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: bold;
-        margin-top: 10px;
-    }
-    .coupang-link:hover {
-        background-color: #005bb5;
-    }
-    .ad-notice {
-        font-size: 11px;
-        color: #a0aec0;
-        margin-top: 12px;
-        text-align: right;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -149,7 +105,7 @@ def add_item_callback(name, price):
     st.session_state[f"nm_{idx}"] = name
     st.session_state[f"pr_{idx}"] = price
     st.session_state[f"qty_{idx}"] = 1
-    # 담은 후 다음 품목으로 자동 포커스 이동
+    # 담은 후 다음 품목으로 자동 이동
     st.session_state['target_idx'] = (idx + 1) % 6
 
 def reset_callback():
@@ -159,8 +115,8 @@ def reset_callback():
         st.session_state[f"pr_{i}"] = 0
     st.session_state['target_idx'] = 0
 
-# ----------------- 데이터 로딩 함수 -----------------
-@st.cache_data(ttl=3600)
+# ----------------- 로컬 CSV 데이터 로딩 (외부 웹 요청 없음) -----------------
+@st.cache_data
 def load_price_data():
     file_path = "price_data.csv"
     if os.path.exists(file_path):
@@ -171,32 +127,6 @@ def load_price_data():
             return df, last_updated
         except Exception:
             pass
-
-    # 백업 크롤링 (월드메모리 기준)
-    URLS = [
-        "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=10&ctgry_no2=966&ctgry_no3=4220",
-        "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=10&ctgry_no2=966&ctgry_no3=967",
-        "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=8&ctgry_no2=9&ctgry_no3=4083",
-        "https://www.worldmemory.co.kr/price/computer.do?ctgry_no1=14&ctgry_no2=58&ctgry_no3=3784"
-    ]
-    all_rows = []
-    headers = {"User-Agent": "Mozilla/5.0"}
-    for u in URLS:
-        try:
-            res = requests.get(u, headers=headers, timeout=5)
-            soup = BeautifulSoup(res.text, "html.parser")
-            for row in soup.select("tr"):
-                c = row.find("td", class_="price_table_ctgry_nm")
-                n = row.find("td", class_="price_table_prduct_nm")
-                p = row.find("td", class_="price_table_prduct_pc")
-                if c and n and p:
-                    p_num = int(re.sub(r'[^0-9]', '', p.text))
-                    if p_num > 0:
-                        all_rows.append({"분류": c.text.strip(), "상품명": n.text.strip(), "매입가": p_num})
-        except Exception:
-            continue
-    if all_rows:
-        return pd.DataFrame(all_rows), "실시간 임시 로드"
     return pd.DataFrame(columns=["분류", "상품명", "매입가"]), "데이터 없음"
 
 # ----------------- UI 렌더링 -----------------
@@ -219,7 +149,7 @@ df, last_updated = load_price_data()
 if not df.empty:
     st.caption(f"⚡ 시세 데이터 기준: {last_updated}")
 else:
-    st.warning("⚠️ 시세 데이터를 불러오는 중입니다. 잠시 후 새로고침해 주세요.")
+    st.warning("⚠️ 시세 데이터(price_data.csv)가 없습니다. 크롤러 실행 후 새로고침해 주세요.")
 
 # 2. 검색 및 시세 리스트
 if not df.empty:
@@ -227,7 +157,7 @@ if not df.empty:
     with c_cat:
         cat = st.selectbox("분류", ["전체보기"] + sorted(df["분류"].dropna().unique().tolist()), label_visibility="collapsed")
     with c_search:
-        query = st.text_input("검색", placeholder="상품명 입력 (예: 4070, i5, DDR5)", label_visibility="collapsed")
+        query = st.text_input("검색", placeholder="상품명 검색 (예: 4070, i5, DDR5)", label_visibility="collapsed")
 
     f_df = df.copy()
     if cat != "전체보기":
@@ -235,6 +165,8 @@ if not df.empty:
     if query:
         f_df = f_df[f_df["상품명"].astype(str).str.contains(query, case=False, na=False)]
 
+    total_count = len(f_df)
+    
     st.markdown("""
         <div class="table-header">
             <div class="header-item" style="flex:1;">분류</div>
@@ -244,14 +176,19 @@ if not df.empty:
         </div>
     """, unsafe_allow_html=True)
 
-    with st.container(height=360):
-        for i, row in f_df.iterrows():
+    # 렌더링 과부하 방지: 최대 30개만 표시
+    display_df = f_df.head(30)
+    with st.container(height=340):
+        for i, row in display_df.iterrows():
             cols = st.columns([1, 2.5, 1.5, 0.8])
             cols[0].markdown(f'<div class="cell-center">{row["분류"]}</div>', unsafe_allow_html=True)
             cols[1].markdown(f'<div class="cell-left"><span class="truncate-text">{row["상품명"]}</span></div>', unsafe_allow_html=True)
             cols[2].markdown(f'<div class="cell-center price-text">{int(row["매입가"]):,}원</div>', unsafe_allow_html=True)
             with cols[3]:
                 st.button("➕", key=f"add_{i}", on_click=add_item_callback, args=(row['상품명'], int(row['매입가'])))
+
+    if total_count > 30:
+        st.caption(f"💡 검색 결과 {total_count}개 중 상위 30개 표시 중입니다. 더 정확한 부품명으로 검색해 보세요.")
 
 st.divider()
 
@@ -285,12 +222,12 @@ for i in range(6):
     
     with c4:
         st.markdown(
-            f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
+            f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff5252; background-color: rgba(255, 82, 82, 0.1); border-radius: 6px;">'
             f'{item_total:,}원</div>',
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계: 표와 정확히 동일한 컬럼 배율로 맨 오른쪽 열(c4 위치)에 정렬 ---
+# --- 최종 매입 합계: 표 우측 열(c4 위치)에 완벽 정렬 ---
 tot_c1, tot_c2, tot_c3, tot_c4 = st.columns([3, 1.2, 0.9, 1.4])
 with tot_c3:
     st.markdown(
@@ -300,14 +237,14 @@ with tot_c3:
     )
 with tot_c4:
     st.markdown(
-        f'<div style="text-align: center; font-size: 18px; font-weight: 900; color: #ff4b4b; '
-        f'background-color: rgba(255, 75, 75, 0.18); border: 1.5px solid rgba(255, 75, 75, 0.4); '
+        f'<div style="text-align: center; font-size: 18px; font-weight: 900; color: #ff5252; '
+        f'background-color: rgba(255, 82, 82, 0.2); border: 1.5px solid rgba(255, 82, 82, 0.5); '
         f'border-radius: 6px; padding: 10px 0; margin-top: 4px;">'
         f'{total_sum:,}원</div>',
         unsafe_allow_html=True
     )
 
-st.write("")  # 간격용
+st.write("")
 
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
@@ -321,32 +258,3 @@ with b_col2:
         "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
     })
     st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
-
-# 4. 하단 쿠팡 파트너스 배너 (블러 완전히 제거됨)
-st.markdown(f"""
-    <div class="coupang-card">
-        <div style="font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #ffffff;">
-            📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">📦 따뜻해~손난로</div>
-                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">후끈해지는 시간</div>
-                <a href="{COUPANG_LINK_1}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
-            </div>
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">🧪 가성비 써멀구리스</div>
-                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">CPU/쿨러 재조립 필수용품</div>
-                <a href="{COUPANG_LINK_2}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
-            </div>
-            <div class="coupang-item">
-                <div style="font-size: 14px; font-weight: bold; color: #ffffff;">⚡ 정전기 방지 봉투 (ESD)</div>
-                <div style="font-size: 12px; color: #cbd5e0; margin-top: 4px;">RAM / SSD / 그래픽카드 안전 보관</div>
-                <a href="{COUPANG_LINK_3}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
-            </div>
-        </div>
-        <div class="ad-notice">
-            ※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
-        </div>
-    </div>
-""", unsafe_allow_html=True)
