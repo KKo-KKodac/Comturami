@@ -103,7 +103,6 @@ def add_item_callback(name, price):
     st.session_state[f"nm_{idx}"] = name
     st.session_state[f"pr_{idx}"] = price
     st.session_state[f"qty_{idx}"] = 1
-    # 담은 후 다음 품목으로 자동 이동
     st.session_state['target_idx'] = (idx + 1) % 6
 
 def reset_callback():
@@ -149,7 +148,7 @@ if not df.empty:
 else:
     st.warning("⚠️ 시세 데이터(price_data.csv)가 없습니다. 크롤러 실행 후 새로고침해 주세요.")
 
-# 2. 검색 및 시세 리스트
+# 2. 검색 및 시세 리스트 (전체 데이터 노출)
 if not df.empty:
     c_cat, c_search = st.columns([1, 2.5])
     with c_cat:
@@ -174,10 +173,9 @@ if not df.empty:
         </div>
     """, unsafe_allow_html=True)
 
-    # 렌더링 과부하 방지: 최대 30개만 표시
-    display_df = f_df.head(30)
-    with st.container(height=340):
-        for i, row in display_df.iterrows():
+    # 30개 제한 없이 전체 데이터를 스크롤 컨테이너에 출력
+    with st.container(height=380):
+        for i, row in f_df.iterrows():
             cols = st.columns([1, 2.5, 1.5, 0.8])
             cols[0].markdown(f'<div class="cell-center">{row["분류"]}</div>', unsafe_allow_html=True)
             cols[1].markdown(f'<div class="cell-left"><span class="truncate-text">{row["상품명"]}</span></div>', unsafe_allow_html=True)
@@ -185,8 +183,7 @@ if not df.empty:
             with cols[3]:
                 st.button("➕", key=f"add_{i}", on_click=add_item_callback, args=(row['상품명'], int(row['매입가'])))
 
-    if total_count > 30:
-        st.caption(f"💡 검색 결과 {total_count}개 중 상위 30개 표시 중입니다. 더 정확한 부품명으로 검색해 보세요.")
+    st.caption(f"💡 현재 총 {total_count}개의 부품 시세가 표시 중입니다.")
 
 st.divider()
 
@@ -225,7 +222,7 @@ for i in range(6):
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계 금액: 표 우측 라인에 맞춰 큰 글씨로 배치 ---
+# --- 최종 매입 합계 금액: 우측 정렬 ---
 tot_col1, tot_col2 = st.columns([5.1, 1.4])
 with tot_col1:
     st.markdown(
@@ -244,12 +241,11 @@ with tot_col2:
 
 st.write("")
 
-# 4. 하단 버튼 영역 (CSV 다운로드 시 최종 합계 행 포함)
+# 4. 하단 버튼 영역
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
     st.button("🗑️ 전체 초기화", use_container_width=True, on_click=reset_callback)
 with b_col2:
-    # 6개 품목 데이터 아래에 '최종 매입 합계' 행을 맨 끝에 추가
     res_df = pd.DataFrame({
         "항목": labels + ["최종 매입 합계"], 
         "모델": [st.session_state[f"nm_{k}"] for k in range(6)] + [""],
