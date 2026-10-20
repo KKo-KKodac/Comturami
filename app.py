@@ -8,6 +8,14 @@ from datetime import datetime
 
 st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
 
+# ----------------- 링크 설정 -----------------
+KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
+COUPANG_LINK_1 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 에어캡/포장재 파트너스 링크
+COUPANG_LINK_2 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 써멀구리스 링크
+COUPANG_LINK_3 = "https://link.coupang.com/a/hZ1fbLj8AC"  # 정전기방지봉투 링크
+
+labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
+
 # ----------------- 최상단 메인 이미지 노출 -----------------
 IMAGE_FILES = [
     "메인이미지.png",
@@ -86,30 +94,15 @@ st.markdown("""
         background-color: #241111;
     }
 
-    /* 최종 합계 우측 정렬 스타일 */
-    .total-price-right {
-        text-align: right;
-        margin: 20px 0 15px 0;
-        font-size: 22px;
-        font-weight: 800;
-        color: #ffffff;
-        padding-right: 10px;
-    }
-    .total-price-number {
-        color: #ff4b4b;
-        font-size: 28px;
-        font-weight: 900;
-        margin-left: 8px;
-    }
-
     /* 쿠팡 파트너스 배너 카드 스타일 */
     .coupang-card {
         background: #ffffff;
         border: 1px solid #e5e7eb;
         border-radius: 10px;
         padding: 16px;
-        margin-top: 20px;
+        margin-top: 25px;
         color: #333333;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .coupang-item {
         background: #f9fafb;
@@ -117,56 +110,33 @@ st.markdown("""
         border-radius: 8px;
         padding: 12px;
         text-align: center;
+        transition: transform 0.2s;
+    }
+    .coupang-item:hover {
+        transform: translateY(-2px);
     }
     .coupang-link {
         display: inline-block;
         background-color: #0073E9;
         color: #ffffff !important;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
         text-decoration: none;
         font-size: 12px;
         font-weight: 600;
         margin-top: 8px;
     }
+    .coupang-link:hover {
+        background-color: #005bb5;
+    }
     .ad-notice {
         font-size: 11px;
         color: #888888;
-        margin-top: 8px;
+        margin-top: 10px;
         text-align: right;
-    }
-
-    /* 쿠팡 블러 처리 스타일 */
-    .coupang-blur-container {
-        position: relative;
-        overflow: hidden;
-        border-radius: 10px;
-    }
-    .coupang-blur-content {
-        filter: blur(4px);
-        pointer-events: none;
-        user-select: none;
-        opacity: 0.55;
-    }
-    .coupang-blur-badge {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(30, 41, 59, 0.9);
-        color: #ffffff;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-weight: 700;
-        font-size: 13px;
-        z-index: 10;
     }
     </style>
 """, unsafe_allow_html=True)
-
-# ----------------- 링크 설정 -----------------
-KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
-labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"][cite: 4]
 
 # ----------------- Session State 초기화 -----------------
 if 'target_idx' not in st.session_state: 
@@ -326,12 +296,24 @@ for i in range(6):
             unsafe_allow_html=True
         )[cite: 4]
 
-# 최종 합계 우측 정렬
-st.markdown(f"""
-    <div class="total-price-right">
-        💰 최종 매입 합계: <span class="total-price-number">{total_sum:,}원</span>
-    </div>
-""", unsafe_allow_html=True)
+# --- 최종 매입 합계: 위 표의 마지막 열(c4 위치)에 완벽하게 일치시킴 ---
+tot_col1, tot_col2 = st.columns([5.1, 1.4])
+with tot_col1:
+    st.markdown(
+        '<div style="text-align: right; font-size: 19px; font-weight: 800; padding-top: 10px; color: #ffffff;">'
+        '💰 최종 매입 합계:</div>',
+        unsafe_allow_html=True
+    )
+with tot_col2:
+    st.markdown(
+        f'<div style="text-align: center; font-size: 20px; font-weight: 900; color: #ff4b4b; '
+        f'background-color: rgba(255, 75, 75, 0.15); border: 1.5px solid rgba(255, 75, 75, 0.35); '
+        f'border-radius: 6px; padding: 8px 0; margin-top: 4px;">'
+        f'{total_sum:,}원</div>',
+        unsafe_allow_html=True
+    )
+
+st.write("")  # 여백 조절
 
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
@@ -346,38 +328,31 @@ with b_col2:
     })
     st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
 
-# 4. 하단 쿠팡 배너 (준비 중 블러 영역)
+# 4. 하단 쿠팡 파트너스 추천 배너 (블러 해제 및 실링크 연동)
 st.markdown(f"""
-    <div class="coupang-blur-container">
-        <div class="coupang-blur-badge">
-            🔒 추천 제휴 상품 서비스 준비 중입니다
+    <div class="coupang-card">
+        <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">
+            📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
         </div>
-        <div class="coupang-blur-content">
-            <div class="coupang-card">
-                <div style="font-size: 15px; font-weight: bold; color: #1e293b; margin-bottom: 10px;">
-                    📦 PC 택배 포장 & 부품 정리에 필요한 추천 아이템
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    <div class="coupang-item">
-                        <div style="font-size: 14px; font-weight: bold;">📦 에어캡 / 뽁뽁이 롤</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">그래픽카드·본체 파손 방지 완충재</div>
-                        <span class="coupang-link">쿠팡 최저가 보기</span>
-                    </div>
-                    <div class="coupang-item">
-                        <div style="font-size: 14px; font-weight: bold;">🧪 가성비 써멀구리스</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">CPU/쿨러 재조립 필수용품</div>
-                        <span class="coupang-link">쿠팡 최저가 보기</span>
-                    </div>
-                    <div class="coupang-item">
-                        <div style="font-size: 14px; font-weight: bold;">⚡ 정전기 방지 봉투 (ESD)</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 3px;">RAM / SSD / 그래픽카드 안전 보관</div>
-                        <span class="coupang-link">쿠팡 최저가 보기</span>
-                    </div>
-                </div>
-                <div class="ad-notice">
-                    ※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
-                </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+            <div class="coupang-item">
+                <div style="font-size: 14px; font-weight: bold;">📦 에어캡 / 뽁뽁이 롤</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">그래픽카드·본체 파손 방지 완충재</div>
+                <a href="{COUPANG_LINK_1}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
             </div>
+            <div class="coupang-item">
+                <div style="font-size: 14px; font-weight: bold;">🧪 가성비 써멀구리스</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">CPU/쿨러 재조립 필수용품</div>
+                <a href="{COUPANG_LINK_2}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
+            </div>
+            <div class="coupang-item">
+                <div style="font-size: 14px; font-weight: bold;">⚡ 정전기 방지 봉투 (ESD)</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 3px;">RAM / SSD / 그래픽카드 안전 보관</div>
+                <a href="{COUPANG_LINK_3}" target="_blank" class="coupang-link">쿠팡 최저가 보기 ➜</a>
+            </div>
+        </div>
+        <div class="ad-notice">
+            ※ 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
         </div>
     </div>
 """, unsafe_allow_html=True)
