@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import os
+import uuid
 from datetime import datetime
 
 st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
@@ -12,12 +13,11 @@ st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="
 st.markdown("""
     <style>
     div[data-baseweb="select"], div[data-baseweb="input"], .stTextInput input, .stSelectbox div[role="button"] {
-        height: 46px !important; min-height: 46px !important;
+        height: 44px !important; min-height: 44px !important;
         display: flex !important; align-items: center !important;
     }
     div[data-baseweb="select"] > div { padding: 0 !important; display: flex !important; align-items: center !important; }
     
-    /* 컴뚜라미 브랜드 컬러 적용 */
     .table-header {
         display: flex; background-color: #1e3a29; color: white; 
         padding: 10px 0; font-weight: bold; border-radius: 6px; text-align: center; margin-bottom: 8px; font-size: 14px;
@@ -27,15 +27,15 @@ st.markdown("""
 
     .cell-center { 
         text-align: center; display: flex; align-items: center; justify-content: center; 
-        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
+        height: 44px; border-right: 1px solid #f0f2f6; font-size: 14px;
     }
     .cell-left { 
         display: flex; align-items: center; padding-left: 10px; 
-        height: 46px; border-right: 1px solid #f0f2f6; font-size: 14px;
+        height: 44px; border-right: 1px solid #f0f2f6; font-size: 14px;
     }
 
     div.stButton > button[key^="add_"] {
-        width: 36px !important; min-width: 36px !important; height: 36px !important; 
+        width: 34px !important; min-width: 34px !important; height: 34px !important; 
         border-radius: 50% !important; margin: 0 auto !important; display: flex !important;
         align-items: center !important; justify-content: center !important;
     }
@@ -131,36 +131,53 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ----------------- 링크 설정 -----------------
+# ----------------- 링크 및 기본 설정 -----------------
 KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
-labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
+CATEGORY_OPTIONS = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드", "파워/케이스", "완본체", "기타"]
 
-# ----------------- Session State 초기화 -----------------
-if 'target_idx' not in st.session_state: 
-    st.session_state['target_idx'] = 0
+# ----------------- 1. 상단 타이틀 배너 이미지 -----------------
+BANNER_IMAGE_PATH = "네이버블로그-타이틀-이미지_컴뚜라미.jpg"
+if os.path.exists(BANNER_IMAGE_PATH):
+    st.image(BANNER_IMAGE_PATH, use_container_width=True)
+else:
+    # 이미지가 로컬에 없을 때 대체 헤더
+    st.title("컴뚜라미 컴퓨터 부품 전문 매입 🖥️")
 
-for i in range(6):
-    if f"nm_{i}" not in st.session_state: 
-        st.session_state[f"nm_{i}"] = ""
-    if f"qty_{i}" not in st.session_state: 
-        st.session_state[f"qty_{i}"] = 1
-    if f"pr_{i}" not in st.session_state: 
-        st.session_state[f"pr_{i}"] = 0
+# ----------------- Session State 초기화 (동적 리스트 관리) -----------------
+if 'calc_items' not in st.session_state:
+    # 기본 시작용 3개 기본 행
+    st.session_state['calc_items'] = [
+        {"id": str(uuid.uuid4())[:8], "category": "CPU", "name": "", "price": 0, "qty": 1},
+        {"id": str(uuid.uuid4())[:8], "category": "그래픽카드", "name": "", "price": 0, "qty": 1},
+        {"id": str(uuid.uuid4())[:8], "category": "메모리", "name": "", "price": 0, "qty": 1},
+    ]
 
-def add_item_callback(name, price):
-    idx = st.session_state['target_idx']
-    st.session_state[f"nm_{idx}"] = name
-    st.session_state[f"pr_{idx}"] = price
-    st.session_state[f"qty_{idx}"] = 1
-    # 담은 후 다음 품목으로 자동 포커스 이동
-    st.session_state['target_idx'] = (idx + 1) % 6
+def add_empty_item():
+    st.session_state['calc_items'].append({
+        "id": str(uuid.uuid4())[:8],
+        "category": "기타",
+        "name": "",
+        "price": 0,
+        "qty": 1
+    })
 
-def reset_callback():
-    for i in range(6):
-        st.session_state[f"nm_{i}"] = ""
-        st.session_state[f"qty_{i}"] = 1
-        st.session_state[f"pr_{i}"] = 0
-    st.session_state['target_idx'] = 0
+def add_price_item(category, name, price):
+    # 검색 테이블에서 담기 버튼을 누를 때 호출
+    cat = category if category in CATEGORY_OPTIONS else "기타"
+    st.session_state['calc_items'].append({
+        "id": str(uuid.uuid4())[:8],
+        "category": cat,
+        "name": name,
+        "price": int(price),
+        "qty": 1
+    })
+    st.toast(f"'{name}' 품목이 계산 리스트에 추가되었습니다! 🛒", icon="✅")
+
+def remove_item(item_id):
+    st.session_state['calc_items'] = [item for item in st.session_state['calc_items'] if item['id'] != item_id]
+
+def reset_all_items():
+    st.session_state['calc_items'] = []
 
 # ----------------- 데이터 로딩 함수 -----------------
 @st.cache_data(ttl=3600)
@@ -203,14 +220,13 @@ def load_price_data():
     return pd.DataFrame(columns=["분류", "상품명", "매입가"]), "데이터 없음"
 
 # ----------------- UI 렌더링 -----------------
-st.title("컴뚜라미 컴퓨터 매입계산기 🖥️")
 
-# 1. 카카오톡 상담 배너
+# 카카오톡 상담 배너
 st.markdown(f"""
     <div class="consult-banner">
         <div>
             <div style="font-size: 17px; font-weight: 800; margin-bottom: 2px;">💬 대량 매입 / 단품 시세 문의 & 접수</div>
-            <div style="font-size: 13px; opacity: 0.85;">당일 검수! 즉시 입금해 드립니다.</div>
+            <div style="font-size: 13px; opacity: 0.85;">당일 신속 검수! 즉시 입금해 드립니다.</div>
         </div>
         <div>
             <a href="{KAKAO_CHAT_URL}" target="_blank" class="consult-btn">카톡 상담하기 ➜</a>
@@ -248,68 +264,126 @@ if not df.empty:
         </div>
     """, unsafe_allow_html=True)
 
-    with st.container(height=360):
+    with st.container(height=340):
         for i, row in f_df.iterrows():
             cols = st.columns([1, 2.5, 1.5, 0.8])
             cols[0].markdown(f'<div class="cell-center">{row["분류"]}</div>', unsafe_allow_html=True)
             cols[1].markdown(f'<div class="cell-left"><span class="truncate-text">{row["상품명"]}</span></div>', unsafe_allow_html=True)
             cols[2].markdown(f'<div class="cell-center price-text">{int(row["매입가"]):,}원</div>', unsafe_allow_html=True)
             with cols[3]:
-                st.button("➕", key=f"add_{i}", on_click=add_item_callback, args=(row['상품명'], int(row['매입가'])))
+                st.button("➕", key=f"add_tbl_{i}", on_click=add_price_item, args=(row["분류"], row['상품명'], int(row['매입가'])))
 
 st.divider()
 
-# 3. 매입 계산 리스트
-st.subheader("🛒 매입 계산 리스트")
-st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
+# ----------------- 3. 동적 매입 계산 리스트 (추가/삭제 지원) -----------------
+col_h1, col_h2 = st.columns([3, 1])
+with col_h1:
+    st.subheader("🛒 내 매입 계산 리스트")
+with col_h2:
+    st.button("➕ 항목 직접 추가", on_click=add_empty_item, use_container_width=True)
 
 st.markdown("""
     <div style="display: flex; background-color: #1e3a29; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px; font-size: 13px;">
-        <div style="flex: 3;">모델명</div>
-        <div style="flex: 1.2;">단가(원)</div>
-        <div style="flex: 0.9;">수량</div>
+        <div style="flex: 1.2;">분류</div>
+        <div style="flex: 2.8;">모델명</div>
+        <div style="flex: 1.3;">단가(원)</div>
+        <div style="flex: 0.8;">수량</div>
         <div style="flex: 1.4;">합계금액(원)</div>
+        <div style="flex: 0.5;">삭제</div>
     </div>
 """, unsafe_allow_html=True)
 
 total_sum = 0
-for i in range(6):
-    st.caption(f"**{labels[i]}**")
-    c1, c2, c3, c4 = st.columns([3, 1.2, 0.9, 1.4])
-    
-    with c1:
-        st.text_input(f"모델명_{i}", key=f"nm_{i}", label_visibility="collapsed")
-    with c2:
-        st.number_input(f"단가_{i}", step=1000, key=f"pr_{i}", label_visibility="collapsed")
-    with c3:
-        st.number_input(f"수량_{i}", min_value=1, step=1, key=f"qty_{i}", label_visibility="collapsed")
-    
-    item_total = st.session_state[f"pr_{i}"] * st.session_state[f"qty_{i}"]
-    total_sum += item_total
-    
-    with c4:
-        st.markdown(
-            f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
-            f'{item_total:,}원</div>',
-            unsafe_allow_html=True
-        )
+export_rows = []
 
+if not st.session_state['calc_items']:
+    st.info("리스트가 비어 있습니다. 상단 테이블에서 [➕] 버튼을 누르거나 [➕ 항목 직접 추가]를 눌러 품목을 추가하세요.")
+else:
+    for item in st.session_state['calc_items']:
+        item_id = item['id']
+        c_cat, c_name, c_pr, c_qty, c_subtotal, c_del = st.columns([1.2, 2.8, 1.3, 0.8, 1.4, 0.5])
+        
+        with c_cat:
+            cat_idx = CATEGORY_OPTIONS.index(item['category']) if item['category'] in CATEGORY_OPTIONS else 0
+            selected_cat = st.selectbox(
+                f"분류_{item_id}",
+                CATEGORY_OPTIONS,
+                index=cat_idx,
+                key=f"cat_w_{item_id}",
+                label_visibility="collapsed"
+            )
+            item['category'] = selected_cat
+
+        with c_name:
+            item_name = st.text_input(
+                f"품목_{item_id}",
+                value=item['name'],
+                key=f"nm_w_{item_id}",
+                placeholder="부품 모델명 입력",
+                label_visibility="collapsed"
+            )
+            item['name'] = item_name
+
+        with c_pr:
+            item_price = st.number_input(
+                f"단가_{item_id}",
+                min_value=0,
+                step=1000,
+                value=int(item['price']),
+                key=f"pr_w_{item_id}",
+                label_visibility="collapsed"
+            )
+            item['price'] = item_price
+
+        with c_qty:
+            item_qty = st.number_input(
+                f"수량_{item_id}",
+                min_value=1,
+                step=1,
+                value=int(item['qty']),
+                key=f"qty_w_{item_id}",
+                label_visibility="collapsed"
+            )
+            item['qty'] = item_qty
+
+        subtotal = item['price'] * item['qty']
+        total_sum += subtotal
+
+        with c_subtotal:
+            st.markdown(
+                f'<div class="cell-center" style="font-size: 14px; font-weight: bold; color: #d93838; background-color: rgba(217, 56, 56, 0.08); border-radius: 6px;">'
+                f'{subtotal:,}원</div>',
+                unsafe_allow_html=True
+            )
+
+        with c_del:
+            st.button("❌", key=f"del_{item_id}", on_click=remove_item, args=(item_id,))
+
+        export_rows.append({
+            "분류": item['category'],
+            "모델명": item['name'],
+            "단가": item['price'],
+            "수량": item['qty'],
+            "합계": subtotal
+        })
+
+# 최종 합계 표시
 st.markdown(f"### 💰 최종 매입 합계: :red[{total_sum:,}원]")
 
+# 하단 컨트롤 버튼 (초기화, CSV 다운로드)
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
-    st.button("🗑️ 전체 초기화", use_container_width=True, on_click=reset_callback)
+    st.button("🗑️ 전체 목록 비우기", use_container_width=True, on_click=reset_all_items)
 with b_col2:
-    res_df = pd.DataFrame({
-        "항목": labels, 
-        "모델": [st.session_state[f"nm_{k}"] for k in range(6)],
-        "수량": [st.session_state[f"qty_{k}"] for k in range(6)],
-        "단가": [st.session_state[f"pr_{k}"] for k in range(6)],
-        "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
-    })
-    st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
+    res_df = pd.DataFrame(export_rows)
+    st.download_button(
+        "💾 견적서 CSV 다운로드",
+        data=res_df.to_csv(index=False).encode('utf-8-sig'),
+        file_name="컴뚜라미_매입견적서.csv",
+        use_container_width=True
+    )
 
-# 4. 하단 쿠팡 배너 (준비 중 블러 영역)
+# ----------------- 4. 하단 제휴 배너 (준비 중 블러) -----------------
 st.markdown(f"""
     <div class="coupang-blur-container">
         <div class="coupang-blur-badge">
