@@ -11,9 +11,7 @@ labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
 
 # ----------------- 최상단 메인 이미지 노출 -----------------
 IMAGE_FILES = [
-    "메인이미지.png",
-    "네이버블로그-타이틀-이미지_컴뚜라미.jpg",
-    "title_banner.png"
+    "메인이미지.png"
 ]
 
 banner_shown = False
@@ -115,7 +113,7 @@ def reset_callback():
         st.session_state[f"pr_{i}"] = 0
     st.session_state['target_idx'] = 0
 
-# ----------------- 로컬 CSV 데이터 로딩 (외부 웹 요청 없음) -----------------
+# ----------------- 로컬 CSV 데이터 로딩 -----------------
 @st.cache_data
 def load_price_data():
     file_path = "price_data.csv"
@@ -227,25 +225,26 @@ for i in range(6):
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계: 표 우측 열(c4 위치)에 완벽 정렬 ---
+# --- 최종 매입 합계: 표 우측 열(c4 위치)에 정렬 ---
 tot_c1, tot_c2, tot_c3, tot_c4 = st.columns([3, 1.2, 0.9, 1.4])
 with tot_c3:
     st.markdown(
-        '<div style="text-align: right; font-size: 16px; font-weight: 800; padding-top: 14px; color: #ffffff;">'
+        '<div style="text-align: right; font-size: 15px; font-weight: bold; padding-top: 10px; color: #ffffff;">'
         '💰 최종합계</div>',
         unsafe_allow_html=True
     )
 with tot_c4:
     st.markdown(
-        f'<div style="text-align: center; font-size: 18px; font-weight: 900; color: #ff5252; '
-        f'background-color: rgba(255, 82, 82, 0.2); border: 1.5px solid rgba(255, 82, 82, 0.5); '
-        f'border-radius: 6px; padding: 10px 0; margin-top: 4px;">'
+        f'<div style="text-align: center; font-size: 16px; font-weight: 800; color: #ff5252; '
+        f'background-color: rgba(255, 82, 82, 0.18); border: 1.5px solid rgba(255, 82, 82, 0.4); '
+        f'border-radius: 6px; padding: 8px 0; margin-top: 2px;">'
         f'{total_sum:,}원</div>',
         unsafe_allow_html=True
     )
 
 st.write("")
 
+# 4. 하단 버튼 영역 (쿠팡 배너 완전 삭제)
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
     st.button("🗑️ 전체 초기화", use_container_width=True, on_click=reset_callback)
@@ -257,4 +256,9 @@ with b_col2:
         "단가": [st.session_state[f"pr_{k}"] for k in range(6)],
         "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
     })
-    st.download_button("💾 CSV 다운로드", data=res_df.to_csv(index=False).encode('utf-8-sig'), file_name="컴뚜라미_매입견적.csv", use_container_width=True)
+    st.download_button(
+        "💾 CSV 다운로드",
+        data=res_df.to_csv(index=False).encode('utf-8-sig'),
+        file_name="컴뚜라미_매입견적.csv",
+        use_container_width=True
+    )
