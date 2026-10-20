@@ -225,36 +225,37 @@ for i in range(6):
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계: 표 우측 열(c4 위치)에 정렬 ---
-tot_c1, tot_c2, tot_c3, tot_c4 = st.columns([3, 1.2, 0.9, 1.4])
-with tot_c3:
+# --- 최종 매입 합계 금액: 표 우측 라인에 맞춰 큰 글씨로 배치 ---
+tot_col1, tot_col2 = st.columns([5.1, 1.4])
+with tot_col1:
     st.markdown(
-        '<div style="text-align: right; font-size: 15px; font-weight: bold; padding-top: 10px; color: #ffffff;">'
-        '💰 최종합계</div>',
+        '<div style="text-align: right; font-size: 20px; font-weight: 800; padding-top: 10px; color: #ffffff;">'
+        '💰 최종 매입 합계 금액</div>',
         unsafe_allow_html=True
     )
-with tot_c4:
+with tot_col2:
     st.markdown(
-        f'<div style="text-align: center; font-size: 16px; font-weight: 800; color: #ff5252; '
-        f'background-color: rgba(255, 82, 82, 0.18); border: 1.5px solid rgba(255, 82, 82, 0.4); '
-        f'border-radius: 6px; padding: 8px 0; margin-top: 2px;">'
+        f'<div style="text-align: center; font-size: 22px; font-weight: 900; color: #ff5252; '
+        f'background-color: rgba(255, 82, 82, 0.2); border: 1.5px solid rgba(255, 82, 82, 0.5); '
+        f'border-radius: 8px; padding: 6px 0; margin-top: 2px;">'
         f'{total_sum:,}원</div>',
         unsafe_allow_html=True
     )
 
 st.write("")
 
-# 4. 하단 버튼 영역 (쿠팡 배너 완전 삭제)
+# 4. 하단 버튼 영역 (CSV 다운로드 시 최종 합계 행 포함)
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
     st.button("🗑️ 전체 초기화", use_container_width=True, on_click=reset_callback)
 with b_col2:
+    # 6개 품목 데이터 아래에 '최종 매입 합계' 행을 맨 끝에 추가
     res_df = pd.DataFrame({
-        "항목": labels, 
-        "모델": [st.session_state[f"nm_{k}"] for k in range(6)],
-        "수량": [st.session_state[f"qty_{k}"] for k in range(6)],
-        "단가": [st.session_state[f"pr_{k}"] for k in range(6)],
-        "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)]
+        "항목": labels + ["최종 매입 합계"], 
+        "모델": [st.session_state[f"nm_{k}"] for k in range(6)] + [""],
+        "단가": [st.session_state[f"pr_{k}"] for k in range(6)] + [""],
+        "수량": [st.session_state[f"qty_{k}"] for k in range(6)] + [""],
+        "합계": [st.session_state[f"pr_{k}"] * st.session_state[f"qty_{k}"] for k in range(6)] + [total_sum]
     })
     st.download_button(
         "💾 CSV 다운로드",
