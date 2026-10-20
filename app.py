@@ -9,7 +9,6 @@ from datetime import datetime
 st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="wide", page_icon="💾")
 
 # ----------------- 최상단 메인 이미지 노출 -----------------
-# 첨부해주신 이미지 파일명을 아래 변수에 맞춰주세요.
 IMAGE_FILES = [
     "메인이미지.png",
     "네이버블로그-타이틀-이미지_컴뚜라미.jpg",
@@ -87,6 +86,22 @@ st.markdown("""
         background-color: #241111;
     }
 
+    /* 최종 합계 우측 정렬 스타일 */
+    .total-price-right {
+        text-align: right;
+        margin: 20px 0 15px 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        padding-right: 10px;
+    }
+    .total-price-number {
+        color: #ff4b4b;
+        font-size: 28px;
+        font-weight: 900;
+        margin-left: 8px;
+    }
+
     /* 쿠팡 파트너스 배너 카드 스타일 */
     .coupang-card {
         background: #ffffff;
@@ -151,7 +166,7 @@ st.markdown("""
 
 # ----------------- 링크 설정 -----------------
 KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
-labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
+labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"][cite: 4]
 
 # ----------------- Session State 초기화 -----------------
 if 'target_idx' not in st.session_state: 
@@ -276,9 +291,9 @@ if not df.empty:
 
 st.divider()
 
-# 3. 매입 계산 리스트
-st.subheader("🛒 매입 계산 리스트")
-st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)
+# 3. 매입 계산 리스트[cite: 4]
+st.subheader("🛒 매입 계산 리스트")[cite: 4]
+st.radio("현재 담을 대상 부품:", range(6), format_func=lambda x: labels[x], key="target_idx", horizontal=True)[cite: 4]
 
 st.markdown("""
     <div style="display: flex; background-color: #1e3a29; color: white; padding: 8px 0; font-weight: bold; border-radius: 4px; text-align: center; margin-bottom: 12px; font-size: 13px;">
@@ -287,11 +302,11 @@ st.markdown("""
         <div style="flex: 0.9;">수량</div>
         <div style="flex: 1.4;">합계금액(원)</div>
     </div>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)[cite: 4]
 
 total_sum = 0
 for i in range(6):
-    st.caption(f"**{labels[i]}**")
+    st.caption(f"**{labels[i]}**")[cite: 4]
     c1, c2, c3, c4 = st.columns([3, 1.2, 0.9, 1.4])
     
     with c1:
@@ -309,9 +324,14 @@ for i in range(6):
             f'<div class="cell-center" style="font-size: 15px; font-weight: bold; color: #ff4b4b; background-color: rgba(255, 75, 75, 0.08); border-radius: 6px;">'
             f'{item_total:,}원</div>',
             unsafe_allow_html=True
-        )
+        )[cite: 4]
 
-st.markdown(f"### 💰 최종 매입 합계: :red[{total_sum:,}원]")
+# 최종 합계 우측 정렬
+st.markdown(f"""
+    <div class="total-price-right">
+        💰 최종 매입 합계: <span class="total-price-number">{total_sum:,}원</span>
+    </div>
+""", unsafe_allow_html=True)
 
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
