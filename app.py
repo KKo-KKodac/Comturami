@@ -225,26 +225,26 @@ for i in range(6):
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계 금액: 앞선 3개 컬럼(3+1.2+0.9=5.1)과 마지막 합계 열(1.4)로 배치 ---
-tot_col1, tot_col2 = st.columns([5.1, 1.4])
-with tot_col1:
+# --- 최종 매입 합계: 표 우측 열(c4 위치)에 정렬 ---
+tot_c1, tot_c2, tot_c3, tot_c4 = st.columns([3, 1.2, 0.9, 1.4])
+with tot_c3:
     st.markdown(
-        '<div style="text-align: right; font-size: 20px; font-weight: 800; padding-top: 10px; color: #ffffff;">'
-        '💰 최종 매입 합계 금액</div>',
+        '<div style="text-align: right; font-size: 15px; font-weight: bold; padding-top: 10px; color: #ffffff;">'
+        '💰 최종합계</div>',
         unsafe_allow_html=True
     )
-with tot_col2:
+with tot_c4:
     st.markdown(
-        f'<div style="text-align: center; font-size: 22px; font-weight: 900; color: #ff5252; '
-        f'background-color: rgba(255, 82, 82, 0.2); border: 1.5px solid rgba(255, 82, 82, 0.5); '
-        f'border-radius: 8px; padding: 6px 0; margin-top: 2px;">'
+        f'<div style="text-align: center; font-size: 16px; font-weight: 800; color: #ff5252; '
+        f'background-color: rgba(255, 82, 82, 0.18); border: 1.5px solid rgba(255, 82, 82, 0.4); '
+        f'border-radius: 6px; padding: 8px 0; margin-top: 2px;">'
         f'{total_sum:,}원</div>',
         unsafe_allow_html=True
     )
 
 st.write("")
 
-# 4. 하단 버튼 영역
+# 4. 하단 버튼 영역 (쿠팡 배너 완전 삭제)
 b_col1, b_col2, _ = st.columns([1.5, 1.5, 2.5])
 with b_col1:
     st.button("🗑️ 전체 초기화", use_container_width=True, on_click=reset_callback)
