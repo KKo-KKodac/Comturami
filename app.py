@@ -11,7 +11,7 @@ labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
 
 # ----------------- 최상단 메인 이미지 노출 -----------------
 IMAGE_FILES = [
-    "메인이미지.png"
+    "메인.png"
 ]
 
 banner_shown = False
@@ -20,7 +20,7 @@ for img_path in IMAGE_FILES:
         st.image(img_path, use_container_width=True)
         banner_shown = True
         break
-
+        
 if not banner_shown:
     st.title("컴뚜라미 컴퓨터 매입계산기 🖥️")
 
