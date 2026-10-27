@@ -9,20 +9,8 @@ st.set_page_config(page_title="컴뚜라미 컴퓨터 매입계산기", layout="
 KAKAO_CHAT_URL = "http://pf.kakao.com/_AxcDFX/chat"
 labels = ["CPU", "메인보드", "메모리", "SSD", "HDD", "그래픽카드"]
 
-# ----------------- 최상단 메인 이미지 노출 -----------------
-IMAGE_FILES = [
-    "메인.png"
-]
-
-banner_shown = False
-for img_path in IMAGE_FILES:
-    if os.path.exists(img_path):
-        st.image(img_path, use_container_width=True)
-        banner_shown = True
-        break
-        
-if not banner_shown:
-    st.title("컴뚜라미 컴퓨터 매입계산기 🖥️")
+# ----------------- 최상단 타이틀 -----------------
+st.title("컴뚜라미 컴퓨터 매입계산기 🖥️")
 
 # ----------------- 스타일 정의 -----------------
 st.markdown("""
@@ -113,14 +101,18 @@ def reset_callback():
     st.session_state['target_idx'] = 0
 
 # ----------------- 로컬 CSV 데이터 로딩 -----------------
-@st.cache_data
+@st.cache_data(ttl=600)
+def _read_price_csv(mtime):
+    file_path = "price_data.csv"
+    return pd.read_csv(file_path, encoding="utf-8-sig")
+
 def load_price_data():
     file_path = "price_data.csv"
     if os.path.exists(file_path):
         mtime = os.path.getmtime(file_path)
         last_updated = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
         try:
-            df = pd.read_csv(file_path, encoding="utf-8-sig")
+            df = _read_price_csv(mtime)
             return df, last_updated
         except Exception:
             pass
@@ -148,7 +140,7 @@ if not df.empty:
 else:
     st.warning("⚠️ 시세 데이터(price_data.csv)가 없습니다. 크롤러 실행 후 새로고침해 주세요.")
 
-# 2. 검색 및 시세 리스트 (전체 데이터 노출)
+# 2. 검색 및 시세 리스트
 if not df.empty:
     c_cat, c_search = st.columns([1, 2.5])
     with c_cat:
@@ -173,7 +165,6 @@ if not df.empty:
         </div>
     """, unsafe_allow_html=True)
 
-    # 30개 제한 없이 전체 데이터를 스크롤 컨테이너에 출력
     with st.container(height=380):
         for i, row in f_df.iterrows():
             cols = st.columns([1, 2.5, 1.5, 0.8])
@@ -222,7 +213,7 @@ for i in range(6):
             unsafe_allow_html=True
         )
 
-# --- 최종 매입 합계 금액: 우측 정렬 ---
+# 최종 매입 합계 금액 (우측 정렬)
 tot_col1, tot_col2 = st.columns([5.1, 1.4])
 with tot_col1:
     st.markdown(
